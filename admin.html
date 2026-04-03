@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Certificate Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#b8860b;--gold-light:#d4a843;--navy:#0a1628;--navy-mid:#142247;
+  --blue:#1e3a8a;--cream:#fdfaf4;--white:#fff;--muted:#6b7280;
+  --light:#f3f4f6;--border:#e5e7eb;--green:#065f46;--gold-c:#b45309;
+}
+body{background:var(--navy);min-height:100vh;font-family:'Inter',sans-serif;}
+
+nav{background:var(--navy);border-bottom:1px solid rgba(184,134,11,.3);padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;height:64px;}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:700;font-size:.85rem;color:var(--navy);}
+.nav-brand{display:flex;align-items:center;gap:.8rem;}
+.nav-title{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold-light);letter-spacing:.05em;}
+.nav-sub{font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;}
+.admin-badge{font-size:.62rem;background:rgba(212,168,67,.15);border:1px solid var(--gold-light);
+  color:var(--gold-light);padding:.3rem .8rem;border-radius:4px;letter-spacing:.08em;}
+
+.page{background:var(--cream);min-height:calc(100vh - 64px);padding:3rem 1.5rem 5rem;}
+.page-header{text-align:center;margin-bottom:2.5rem;}
+.page-header h1{font-family:'Cinzel',serif;font-size:1.8rem;color:var(--navy);margin-bottom:.3rem;}
+.page-header p{font-size:.8rem;color:var(--muted);}
+
+.panel{background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+  max-width:720px;width:100%;margin:0 auto 2rem;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.06);}
+.panel-head{background:var(--navy);padding:1rem 1.8rem;
+  display:flex;align-items:center;justify-content:space-between;}
+.panel-head h2{font-family:'Cinzel',serif;font-size:.82rem;font-weight:600;
+  color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;}
+.panel-body{padding:2rem;}
+
+label{display:block;font-size:.65rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--navy);margin-bottom:.4rem;margin-top:1.3rem;}
+label:first-child{margin-top:0;}
+input,textarea,select{width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);
+  border-radius:6px;font-family:'Inter',sans-serif;font-size:.85rem;color:var(--navy);
+  background:var(--light);outline:none;transition:border .2s,box-shadow .2s;}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,11,.1);}
+textarea{resize:vertical;min-height:120px;line-height:1.6;}
+.hint{font-size:.62rem;color:var(--muted);margin-top:.35rem;line-height:1.5;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+.btn{display:block;width:100%;margin-top:1.8rem;padding:.9rem;
+  background:linear-gradient(135deg,var(--navy),var(--navy-mid));
+  color:#fff;border:none;border-radius:8px;font-family:'Cinzel',serif;
+  font-size:1rem;font-weight:700;letter-spacing:.08em;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 4px 14px rgba(10,22,40,.25);}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,22,40,.35);}
+.btn:active{transform:translateY(0);}
+
+/* OUTPUT */
+#output{max-width:720px;margin:0 auto;}
+#output-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--navy);
+  margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);}
+
+.cert-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:1.4rem;box-shadow:0 4px 16px rgba(0,0,0,.06);}
+.cert-card-head{background:var(--navy);padding:.75rem 1.4rem;
+  display:flex;align-items:center;justify-content:space-between;}
+.cert-card-head .cid{font-size:.65rem;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:.06em;}
+.type-pill{font-size:.62rem;padding:.25rem .75rem;border-radius:20px;font-weight:600;letter-spacing:.05em;}
+.type-pill.winner{background:#fef3c7;color:var(--gold-c);}
+.type-pill.participant{background:#dcfce7;color:var(--green);}
+
+.cert-card-body{padding:1.4rem 1.6rem;display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start;}
+.fields .field-row{display:grid;grid-template-columns:110px 1fr;padding:.45rem 0;border-bottom:1px solid var(--light);}
+.fields .field-row:last-child{border:none;}
+.fl{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.fv{font-size:.82rem;color:var(--navy);font-weight:500;}
+.fv.name{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;}
+
+.qr-col{display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.qr-col canvas,.qr-col img{border:6px solid #f3f4f6;border-radius:4px;}
+.qr-note{font-size:.58rem;color:var(--muted);text-align:center;letter-spacing:.04em;}
+
+.link-box{font-size:.6rem;color:var(--blue);background:var(--light);
+  padding:.5rem .8rem;border-radius:4px;border:1px solid var(--border);
+  word-break:break-all;margin-top:.8rem;line-height:1.5;}
+
+footer{background:var(--navy);padding:1.8rem;text-align:center;border-top:1px solid rgba(184,134,11,.2);}
+footer p{font-size:.62rem;color:rgba(255,255,255,.25);letter-spacing:.1em;}
+
+@media(max-width:540px){
+  .grid2{grid-template-columns:1fr;}
+  .cert-card-body{grid-template-columns:1fr;}
+  .fields .field-row{grid-template-columns:1fr;gap:.1rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">CV</div>
+    <div>
+      <div class="nav-title">CertVerify Portal</div>
+      <div class="nav-sub">Certificate Generator</div>
+    </div>
+  </div>
+  <div class="admin-badge">🔐 Admin Panel</div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Certificate Generator</h1>
+    <p>Fill in the event details and participant list to generate QR codes instantly</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>⚙️ Configuration</h2>
+    </div>
+    <div class="panel-body">
+
+      <label>Your Hosted verify.html URL</label>
+      <input type="url" id="baseUrl" placeholder="https://yourname.github.io/certificates/verify.html" />
+      <div class="hint">⚠️ This is where people land when they scan the QR. Host verify.html on GitHub Pages and paste the link here.</div>
+
+      <div class="grid2">
+        <div>
+          <label>Club / Organization Name</label>
+          <input type="text" id="clubName" placeholder="e.g. IEEE Student Branch" />
+        </div>
+        <div>
+          <label>Event Name</label>
+          <input type="text" id="eventName" placeholder="e.g. Hackathon 2026" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Event Date</label>
+          <input type="date" id="eventDate" />
+        </div>
+        <div>
+          <label>Issued By (Faculty / Coordinator)</label>
+          <input type="text" id="issuedBy" placeholder="e.g. Dr. A. Sharma" />
+        </div>
+      </div>
+
+      <label>Participants List</label>
+      <textarea id="participants" placeholder="One per line. Format: Name, type&#10;&#10;Examples:&#10;Vishruti Jangid, winner&#10;Ravi Kumar, participant&#10;Priya Patel, winner&#10;Ankit Joshi, participant"></textarea>
+      <div class="hint">Type must be <strong>winner</strong> or <strong>participant</strong></div>
+
+      <button class="btn" onclick="generate()">⚡ Generate All Certificates & QR Codes</button>
+    </div>
+  </div>
+
+  <div id="output"></div>
+</div>
+
+<footer>
+  <p>CertVerify Portal — Admin Panel · Only you can see this page</p>
+</footer>
+
+<script>
+function slugify(s){return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');}
+function fmtDate(d){
+  if(!d)return 'N/A';
+  return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function generate(){
+  const baseUrl  = document.getElementById('baseUrl').value.trim().replace(/\/$/,'');
+  const club     = document.getElementById('clubName').value.trim();
+  const event    = document.getElementById('eventName').value.trim();
+  const date     = document.getElementById('eventDate').value;
+  const by       = document.getElementById('issuedBy').value.trim();
+  const raw      = document.getElementById('participants').value.trim();
+
+  if(!baseUrl||!club||!event||!raw){alert('Please fill in URL, Club, Event, and Participants!');return;}
+
+  const lines = raw.split('\n').filter(l=>l.trim());
+  const output = document.getElementById('output');
+  output.innerHTML = `<div id="output-title">🎓 Generated ${lines.length} Certificate${lines.length>1?'s':''} for <strong>${event}</strong></div>`;
+
+  lines.forEach((line,i)=>{
+    const parts = line.split(',');
+    const name  = parts[0].trim();
+    const type  = (parts[1]||'participant').trim().toLowerCase();
+    const isW   = type==='winner';
+    const certId= `${slugify(club)}-${slugify(event)}-${String(i+1).padStart(3,'0')}`;
+    const fmt   = fmtDate(date);
+
+    const params = new URLSearchParams({name,type,club,event,date:fmt,id:certId,by});
+    const url    = `${baseUrl}?${params.toString()}`;
+
+    const card = document.createElement('div');
+    card.className='cert-card';
+    card.innerHTML=`
+      <div class="cert-card-head">
+        <div class="cid">${certId}</div>
+        <div class="type-pill ${isW?'winner':'participant'}">${isW?'🏆 Winner':'✅ Participant'}</div>
+      </div>
+      <div class="cert-card-body">
+        <div class="fields">
+          <div class="field-row"><div class="fl">Name</div><div class="fv name">${name}</div></div>
+          <div class="field-row"><div class="fl">Cert ID</div><div class="fv">${certId}</div></div>
+          <div class="field-row"><div class="fl">Event</div><div class="fv">${event}</div></div>
+          <div class="field-row"><div class="fl">Type</div><div class="fv">${isW?'🏆 Winner':'Participant'}</div></div>
+          <div class="field-row"><div class="fl">Date</div><div class="fv">${fmt}</div></div>
+          <div class="field-row"><div class="fl">Issued By</div><div class="fv">${by||'N/A'}</div></div>
+          <div class="link-box"><a href="${url}" target="_blank" style="color:inherit">${url}</a></div>
+        </div>
+        <div class="qr-col">
+          <div id="qr-${i}"></div>
+          <div class="qr-note">Scan to verify</div>
+        </div>
+      </div>`;
+    output.appendChild(card);
+
+    new QRCode(document.getElementById(`qr-${i}`),{
+      text:url,width:140,height:140,
+      colorDark:'#0a1628',colorLight:'#f3f4f6',
+      correctLevel:QRCode.CorrectLevel.H
+    });
+  });
+}
+</script>
+</body>
+</html>
